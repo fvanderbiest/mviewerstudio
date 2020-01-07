@@ -1,15 +1,15 @@
 <?php
 //include 'who.php';
 require_once('who.php');
-$geob_user = getUser();
-$_conf = json_decode(file_get_contents("../config.json"), true)["app_conf"];
+$user = getUser();
+$_conf = json_decode(file_get_contents("config.json"), true)["app_conf"];
 $the_files = glob($_conf['export_conf_folder'] . "*.xml");
 usort( $the_files, function( $a, $b ) { return filemtime($a) - filemtime($b); } );
 $files = array_reverse($the_files);
 $data = array();
 if (is_array($files)) {
 
-     foreach($files as $filename) {        
+     foreach($files as $filename) {
         $xml = simplexml_load_file("$filename");
         if ($xml !== false) {
             $content = file_get_contents("$filename");
@@ -18,7 +18,7 @@ if (is_array($files)) {
             $xml = simplexml_load_string($content_replace2); // load a SimpleXML object
             $xml_to_json = json_decode(json_encode($xml), 1); // use json to get all values into an array
             $description = $xml_to_json["metadata"]["RDF"]["Description"];
-            if ($description["creator"] == $geob_user) {
+            if ($description["creator"] == $user) {
                 $url = str_replace($_conf['export_conf_folder'], $_conf['conf_path_from_mviewer'], "$filename");
                 $metadata = array(
                     "url" => $url,
@@ -26,15 +26,15 @@ if (is_array($files)) {
                     "date" => $description["date"],
                     "title" => $description["title"],
                     "subjects" => $description["subject"],
-                );        
+                );
                 array_push( $data , $metadata);
             }
-         }       
-        
+         }
+
      }
-     
-     header('Content-type: application/json',true);   
-     echo json_encode($data);  
+
+     header('Content-type: application/json',true);
+     echo json_encode($data);
 
 }
 ?>
